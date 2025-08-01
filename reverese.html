@@ -1,0 +1,1755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reverse Notification App</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    
+    :root {
+      /* Light theme colors */
+      --bg-primary: #667eea;
+      --bg-secondary: #764ba2;
+      --bg-tertiary: #f093fb;
+      --bg-quaternary: #f5576c;
+      --card-bg: rgba(255, 255, 255, 0.95);
+      --card-border: rgba(255, 255, 255, 0.2);
+      --text-primary: #1f2937;
+      --text-secondary: #6b7280;
+      --text-muted: #9ca3af;
+      --accent-bg: #f9fafb;
+      --accent-border: #e5e7eb;
+      --status-bg: #f0f9ff;
+      --status-text: #0369a1;
+      --notification-bg: #fef3c7;
+      --notification-text: #92400e;
+      --settings-bg: #f8fafc;
+      --settings-border: #e2e8f0;
+    }
+    
+    [data-theme="dark"] {
+      /* Dark theme colors */
+      --bg-primary: #1e1b4b;
+      --bg-secondary: #312e81;
+      --bg-tertiary: #581c87;
+      --bg-quaternary: #7c2d12;
+      --card-bg: rgba(17, 24, 39, 0.95);
+      --card-border: rgba(75, 85, 99, 0.3);
+      --text-primary: #f9fafb;
+      --text-secondary: #d1d5db;
+      --text-muted: #9ca3af;
+      --accent-bg: #374151;
+      --accent-border: #4b5563;
+      --status-bg: #1e3a8a;
+      --status-text: #93c5fd;
+      --notification-bg: #451a03;
+      --notification-text: #fbbf24;
+      --settings-bg: #1f2937;
+      --settings-border: #374151;
+    }
+    
+    * {
+      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    
+    /* Custom animations */
+    @keyframes pulse-ring {
+      0% { transform: scale(1); opacity: 1; }
+      100% { transform: scale(1.1); opacity: 0; }
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    
+    @keyframes gradient-shift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+    
+    @keyframes theme-switch {
+      0% { transform: rotate(0deg) scale(1); }
+      50% { transform: rotate(180deg) scale(1.1); }
+      100% { transform: rotate(360deg) scale(1); }
+    }
+    
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    
+    @keyframes slideOut {
+      from { transform: translateX(0); opacity: 1; }
+      to { transform: translateX(100%); opacity: 0; }
+    }
+    
+    @keyframes soundWave {
+      0%, 100% { transform: scaleY(1); }
+      50% { transform: scaleY(1.5); }
+    }
+    
+    @keyframes criticalFlash {
+      0%, 100% { background-color: transparent; }
+      50% { background-color: rgba(239, 68, 68, 0.2); }
+    }
+    
+    @keyframes bombTimer {
+      0% { transform: scale(1); color: #ef4444; }
+      50% { transform: scale(1.1); color: #dc2626; }
+      100% { transform: scale(1); color: #ef4444; }
+    }
+    
+    .gradient-bg {
+      background: linear-gradient(-45deg, var(--bg-primary), var(--bg-secondary), var(--bg-tertiary), var(--bg-quaternary));
+      background-size: 400% 400%;
+      animation: gradient-shift 15s ease infinite;
+    }
+    
+    .glass-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--card-border);
+      color: var(--text-primary);
+    }
+    
+    .pulse-ring {
+      animation: pulse-ring 2s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
+    }
+    
+    .float-animation {
+      animation: float 6s ease-in-out infinite;
+    }
+    
+    .shake-animation {
+      animation: shake 0.5s ease-in-out;
+    }
+    
+    .theme-switch-animation {
+      animation: theme-switch 0.6s ease-in-out;
+    }
+    
+    .slide-in {
+      animation: slideIn 0.3s ease-out;
+    }
+    
+    .slide-out {
+      animation: slideOut 0.3s ease-in;
+    }
+    
+    .critical-flash {
+      animation: criticalFlash 1s ease-in-out infinite;
+    }
+    
+    .bomb-timer {
+      animation: bombTimer 1s ease-in-out infinite;
+      font-weight: 900 !important;
+      text-shadow: 0 0 10px rgba(239, 68, 68, 0.8);
+    }
+    
+    /* Sound wave animation */
+    .sound-wave {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      margin-left: 8px;
+    }
+    
+    .sound-bar {
+      width: 3px;
+      height: 12px;
+      background: currentColor;
+      border-radius: 2px;
+      animation: soundWave 1s ease-in-out infinite;
+    }
+    
+    .sound-bar:nth-child(2) { animation-delay: 0.1s; }
+    .sound-bar:nth-child(3) { animation-delay: 0.2s; }
+    .sound-bar:nth-child(4) { animation-delay: 0.3s; }
+    
+    /* Navigation tabs */
+    .nav-tab {
+      padding: 12px 24px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: transparent;
+      color: var(--text-secondary);
+      border: 2px solid transparent;
+    }
+    
+    .nav-tab.active {
+      background: var(--accent-bg);
+      color: var(--text-primary);
+      border-color: var(--accent-border);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .nav-tab:hover:not(.active) {
+      background: var(--accent-bg);
+      color: var(--text-primary);
+      opacity: 0.7;
+    }
+    
+    /* Theme toggle button */
+    .theme-toggle {
+      position: relative;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #fbbf24, #f59e0b);
+      border: 2px solid var(--accent-border);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
+    }
+    
+    [data-theme="dark"] .theme-toggle {
+      background: linear-gradient(135deg, #1e293b, #334155);
+      box-shadow: 0 4px 15px rgba(30, 41, 59, 0.5);
+    }
+    
+    .theme-toggle:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4);
+    }
+    
+    [data-theme="dark"] .theme-toggle:hover {
+      box-shadow: 0 6px 20px rgba(30, 41, 59, 0.6);
+    }
+    
+    /* Custom toggle switch */
+    .toggle-switch {
+      position: relative;
+      width: 60px;
+      height: 30px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 25px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+    
+    [data-theme="dark"] .toggle-switch {
+      background: linear-gradient(135deg, #4c1d95 0%, #581c87 100%);
+      box-shadow: 0 4px 15px rgba(76, 29, 149, 0.4);
+    }
+    
+    .toggle-switch.inactive {
+      background: var(--accent-bg);
+      border: 2px solid var(--accent-border);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .toggle-knob {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 24px;
+      height: 24px;
+      background: white;
+      border-radius: 50%;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    [data-theme="dark"] .toggle-knob {
+      background: #f1f5f9;
+    }
+    
+    .toggle-switch.active .toggle-knob {
+      transform: translateX(30px);
+    }
+    
+    /* Timer grid selector */
+    .timer-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 16px 0;
+    }
+    
+    .timer-option {
+      padding: 16px;
+      border: 2px solid var(--accent-border);
+      border-radius: 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: var(--accent-bg);
+      color: var(--text-primary);
+    }
+    
+    .timer-option:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .timer-option.selected {
+      border-color: #3b82f6;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      color: white;
+      box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+    }
+    
+    .timer-option .time {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    
+    .timer-option .label {
+      font-size: 12px;
+      opacity: 0.8;
+    }
+    
+    /* Sound selector */
+    .sound-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin: 16px 0;
+    }
+    
+    .sound-option {
+      padding: 12px;
+      border: 2px solid var(--accent-border);
+      border-radius: 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: var(--accent-bg);
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .sound-option:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .sound-option.selected {
+      border-color: #10b981;
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      box-shadow: 0 2px 10px rgba(16, 185, 129, 0.3);
+    }
+    
+    .sound-option .name {
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    .sound-option .play-btn {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      transition: all 0.2s ease;
+    }
+    
+    .sound-option .play-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: scale(1.1);
+    }
+    
+    /* Settings sections */
+    .settings-section {
+      background: var(--settings-bg);
+      border: 1px solid var(--settings-border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    
+    .settings-item {
+      display: flex;
+      justify-content: between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--accent-border);
+    }
+    
+    .settings-item:last-child {
+      border-bottom: none;
+    }
+    
+    .settings-label {
+      flex: 1;
+    }
+    
+    .settings-title {
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+    
+    .settings-description {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    
+    /* Volume slider */
+    .volume-slider {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--accent-border);
+      outline: none;
+      margin: 8px 0;
+      -webkit-appearance: none;
+    }
+    
+    .volume-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #3b82f6;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    .volume-slider::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #3b82f6;
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    /* Platform badges */
+    .platform-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 8px;
+      border-radius: 8px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .platform-mobile {
+      background: #dcfce7;
+      color: #166534;
+    }
+    
+    .platform-desktop {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+    
+    [data-theme="dark"] .platform-mobile {
+      background: #14532d;
+      color: #bbf7d0;
+    }
+    
+    [data-theme="dark"] .platform-desktop {
+      background: #1e3a8a;
+      color: #bfdbfe;
+    }
+    
+    /* Progress circle animations */
+    .progress-circle {
+      transition: stroke-dasharray 1s ease-in-out, stroke 0.5s ease;
+      filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.5));
+    }
+    
+    [data-theme="dark"] .progress-circle {
+      filter: drop-shadow(0 0 12px rgba(147, 197, 253, 0.6));
+    }
+    
+    .urgent {
+      filter: drop-shadow(0 0 12px rgba(239, 68, 68, 0.8));
+      animation: pulse 2s infinite;
+    }
+    
+    [data-theme="dark"] .urgent {
+      filter: drop-shadow(0 0 15px rgba(248, 113, 113, 0.9));
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    
+    /* Text glow effect */
+    .glow-text {
+      text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+    }
+    
+    [data-theme="dark"] .glow-text {
+      text-shadow: 0 0 25px rgba(147, 197, 253, 0.7);
+    }
+    
+    /* Notification badge */
+    .notification-badge {
+      background: linear-gradient(135deg, #ff6b6b, #ffa500);
+      animation: float 3s ease-in-out infinite;
+    }
+    
+    [data-theme="dark"] .notification-badge {
+      background: linear-gradient(135deg, #dc2626, #ea580c);
+    }
+    
+    /* Contextual backgrounds */
+    .accent-bg {
+      background-color: var(--accent-bg);
+      border: 1px solid var(--accent-border);
+    }
+    
+    .status-indicator {
+      background-color: var(--status-bg);
+      color: var(--status-text);
+    }
+    
+    .notification-log {
+      background: var(--notification-bg);
+      color: var(--notification-text);
+      border: 1px solid var(--accent-border);
+    }
+    
+    /* Particle colors for dark mode */
+    [data-theme="dark"] .particle {
+      background-color: rgba(147, 197, 253, 0.3) !important;
+    }
+    
+    /* Smooth gradient transitions */
+    .gradient-text {
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-size: 200% 200%;
+      animation: gradient-shift 8s ease infinite;
+    }
+    
+    [data-theme="dark"] .gradient-text {
+      background: linear-gradient(135deg, #60a5fa, #a78bfa, #f472b6);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    /* Hide content when not active */
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+  </style>
+</head>
+
+<body class="gradient-bg min-h-screen flex items-center justify-center p-4">
+  <!-- Theme Toggle Button -->
+  <div class="fixed top-6 right-6 z-50">
+    <button id="themeToggle" class="theme-toggle" title="Toggle theme">
+      <span id="themeIcon">☀️</span>
+    </button>
+  </div>
+
+  <!-- Floating particles background -->
+  <div class="fixed inset-0 overflow-hidden pointer-events-none">
+    <div class="particle absolute top-1/4 left-1/4 w-2 h-2 bg-white bg-opacity-20 rounded-full pulse-ring"></div>
+    <div class="particle absolute top-3/4 right-1/4 w-1 h-1 bg-white bg-opacity-30 rounded-full pulse-ring" style="animation-delay: 1s;"></div>
+    <div class="particle absolute top-1/2 left-3/4 w-1.5 h-1.5 bg-white bg-opacity-25 rounded-full pulse-ring" style="animation-delay: 2s;"></div>
+    <div class="particle absolute top-1/3 right-1/3 w-1 h-1 bg-white bg-opacity-20 rounded-full pulse-ring" style="animation-delay: 3s;"></div>
+  </div>
+
+  <div class="float-animation">
+    <div id="mainCard" class="glass-card shadow-2xl rounded-3xl p-8 w-full max-w-md relative overflow-hidden">
+      <!-- Decorative gradient overlay -->
+      <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
+      
+      <!-- Navigation Tabs -->
+      <div class="flex justify-center mb-6 bg-gray-100 bg-opacity-50 rounded-2xl p-2" style="background-color: var(--accent-bg);">
+        <button class="nav-tab active" data-tab="home">
+          <span class="text-sm font-medium">🏠 Home</span>
+        </button>
+        <button class="nav-tab" data-tab="settings">
+          <span class="text-sm font-medium">⚙️ Settings</span>
+        </button>
+      </div>
+
+      <!-- Home Tab Content -->
+      <div id="homeTab" class="tab-content active">
+        <!-- Header -->
+        <div class="text-center mb-8">
+          <h1 class="text-3xl font-bold gradient-text mb-2">
+            Reverse Notification App
+          </h1>
+          <p class="text-sm font-medium mb-2" style="color: var(--text-secondary);">We'll notify you when nobody else does 🥲</p>
+          <div class="notification-badge text-white text-xs px-3 py-1 rounded-full inline-block font-semibold">
+            Useless but Effective ✨
+          </div>
+        </div>
+
+        <!-- Enhanced Countdown Circle -->
+        <div class="flex justify-center mb-8 relative">
+          <!-- Outer glow ring -->
+          <div class="absolute inset-0 rounded-full bg-gradient-to-r from-blue-400 to-purple-400 opacity-20 blur-lg"></div>
+          
+          <div class="relative">
+            <svg id="countdownCircle" class="w-44 h-44 transform -rotate-90" viewBox="0 0 36 36">
+              <!-- Background circle with gradient -->
+              <defs>
+                <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" id="bgStop1" style="stop-color:#f1f5f9"/>
+                  <stop offset="100%" id="bgStop2" style="stop-color:#e2e8f0"/>
+                </linearGradient>
+                <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#3b82f6"/>
+                  <stop offset="50%" style="stop-color:#8b5cf6"/>
+                  <stop offset="100%" style="stop-color:#ec4899"/>
+                </linearGradient>
+                <filter id="glow">
+                  <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                  <feMerge> 
+                    <feMergeNode in="coloredBlur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
+              </defs>
+              
+              <circle cx="18" cy="18" r="15.9155" fill="none" stroke="url(#bgGradient)" stroke-width="2"/>
+              
+              <circle 
+                id="progressArc" 
+                cx="18" 
+                cy="18" 
+                r="15.9155" 
+                fill="none" 
+                stroke="url(#progressGradient)" 
+                stroke-width="3" 
+                stroke-dasharray="100, 100"
+                stroke-linecap="round"
+                class="progress-circle"
+                filter="url(#glow)"
+              />
+            </svg>
+            
+            <!-- Center content -->
+            <div class="absolute inset-0 flex flex-col items-center justify-center">
+              <div id="timeLabel" class="text-2xl font-bold glow-text font-mono" style="color: var(--text-primary);">05:00</div>
+              <div id="statusText" class="text-xs mt-1 font-medium" style="color: var(--text-muted);">until notification</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Master Toggle Section -->
+        <div class="accent-bg rounded-2xl p-4 mb-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="font-semibold" style="color: var(--text-primary);">Master Control</span>
+              <div class="text-xs" style="color: var(--text-secondary);">Enable/disable entire system</div>
+            </div>
+            <div class="toggle-switch active" id="masterToggle">
+              <div class="toggle-knob"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Activity Status -->
+        <div class="text-center mb-4">
+          <div id="activityStatus" class="status-indicator inline-flex items-center px-4 py-2 rounded-full text-sm font-medium">
+            <div class="w-2 h-2 bg-current rounded-full mr-2 animate-pulse"></div>
+            Monitoring your solitude...
+            <div id="soundIndicator" class="sound-wave" style="display: none;">
+              <div class="sound-bar"></div>
+              <div class="sound-bar"></div>
+              <div class="sound-bar"></div>
+              <div class="sound-bar"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notification Log -->
+        <div class="notification-log rounded-2xl p-4">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-semibold">🕒 Last Reverse Notification</span>
+            <div id="notificationCount" class="text-xs bg-orange-500 text-white px-2 py-1 rounded-full">0</div>
+          </div>
+          <div id="log" class="text-sm font-mono">—</div>
+        </div>
+      </div>
+
+      <!-- Settings Tab Content -->
+      <div id="settingsTab" class="tab-content">
+        <!-- Settings Header -->
+        <div class="text-center mb-6">
+          <h2 class="text-2xl font-bold gradient-text mb-2">Settings & Customization</h2>
+          <p class="text-sm" style="color: var(--text-secondary);">Customize your useless experience</p>
+        </div>
+
+        <!-- Platform Detection -->
+        <div class="settings-section">
+          <h3 class="settings-title mb-3">📱 Platform Detection</h3>
+          <div class="flex flex-wrap gap-2 mb-3">
+            <span id="platformBadge" class="platform-badge platform-desktop">Desktop</span>
+            <span id="capabilitiesBadge" class="platform-badge platform-mobile" style="display: none;">Vibration</span>
+          </div>
+          <p class="settings-description">Features automatically adapt based on your device capabilities</p>
+        </div>
+
+        <!-- Timer Configuration -->
+        <div class="settings-section">
+          <h3 class="settings-title mb-3">⏰ Timer Configuration</h3>
+          <p class="settings-description mb-3">Choose your notification interval</p>
+          <div class="timer-grid">
+            <div class="timer-option" data-seconds="60">
+              <div class="time">1m</div>
+              <div class="label">Quick</div>
+            </div>
+            <div class="timer-option" data-seconds="180">
+              <div class="time">3m</div>
+              <div class="label">Normal</div>
+            </div>
+            <div class="timer-option selected" data-seconds="300">
+              <div class="time">5m</div>
+              <div class="label">Default</div>
+            </div>
+            <div class="timer-option" data-seconds="600">
+              <div class="time">10m</div>
+              <div class="label">Patient</div>
+            </div>
+            <div class="timer-option" data-seconds="900">
+              <div class="time">15m</div>
+              <div class="label">Zen</div>
+            </div>
+            <div class="timer-option" data-seconds="1800">
+              <div class="time">30m</div>
+              <div class="label">Monk</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sound Preferences -->
+        <div class="settings-section">
+          <h3 class="settings-title mb-3">🔊 Sound Preferences</h3>
+          
+          <!-- Master Sound Toggle -->
+          <div class="settings-item">
+            <div class="settings-label">
+              <div class="settings-title">Notification Sounds</div>
+              <div class="settings-description">Play audio when reverse notifications are sent</div>
+            </div>
+            <div class="toggle-switch active" id="soundToggle">
+              <div class="toggle-knob"></div>
+            </div>
+          </div>
+
+          <!-- Countdown Beeps Toggle -->
+          <div class="settings-item">
+            <div class="settings-label">
+              <div class="settings-title">Countdown Beeps</div>
+              <div class="settings-description">Dramatic beeping sounds in final 10 seconds</div>
+            </div>
+            <div class="toggle-switch active" id="countdownBeepsToggle">
+              <div class="toggle-knob"></div>
+            </div>
+          </div>
+
+          <!-- Volume Control -->
+          <div class="settings-item">
+            <div class="settings-label">
+              <div class="settings-title">Volume Level</div>
+              <div class="settings-description">Adjust notification sound volume</div>
+            </div>
+            <div style="width: 100px;">
+              <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="70">
+            </div>
+          </div>
+
+          <!-- Sound Selection -->
+          <div class="mt-4">
+            <div class="settings-title mb-2">Notification Sound</div>
+            <div class="sound-grid">
+              <div class="sound-option selected" data-sound="bell">
+                <span class="name">🔔 Bell</span>
+                <button class="play-btn" data-preview="bell">▶</button>
+              </div>
+              <div class="sound-option" data-sound="chime">
+                <span class="name">🎵 Chime</span>
+                <button class="play-btn" data-preview="chime">▶</button>
+              </div>
+              <div class="sound-option" data-sound="beep">
+                <span class="name">📟 Beep</span>
+                <button class="play-btn" data-preview="beep">▶</button>
+              </div>
+              <div class="sound-option" data-sound="ding">
+                <span class="name">🛎️ Ding</span>
+                <button class="play-btn" data-preview="ding">▶</button>
+              </div>
+              <div class="sound-option" data-sound="pop">
+                <span class="name">💫 Pop</span>
+                <button class="play-btn" data-preview="pop">▶</button>
+              </div>
+              <div class="sound-option" data-sound="whistle">
+                <span class="name">🎶 Whistle</span>
+                <button class="play-btn" data-preview="whistle">▶</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- UI Sounds -->
+          <div class="settings-item mt-4">
+            <div class="settings-label">
+              <div class="settings-title">UI Sounds</div>
+              <div class="settings-description">Play sounds for button clicks and interactions</div>
+            </div>
+            <div class="toggle-switch active" id="uiSoundToggle">
+              <div class="toggle-knob"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Vibration Control (Mobile Only) -->
+        <div class="settings-section" id="vibrationSection" style="display: none;">
+          <h3 class="settings-title mb-3">📳 Vibration Control</h3>
+          <div class="settings-item">
+            <div class="settings-label">
+              <div class="settings-title">Notification Vibration</div>
+              <div class="settings-description">Vibrate device when reverse notifications are sent</div>
+            </div>
+            <div class="toggle-switch active" id="vibrationToggle">
+              <div class="toggle-knob"></div>
+            </div>
+          </div>
+          <div class="settings-item">
+            <div class="settings-label">
+              <div class="settings-title">Vibration Pattern</div>
+              <div class="settings-description">Use custom vibration pattern for notifications</div>
+            </div>
+            <div class="toggle-switch" id="vibrationPatternToggle">
+              <div class="toggle-knob"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Advanced Settings -->
+        <div class="settings-section">
+          <h3 class="settings-title mb-3">🔧 Advanced Settings</h3>
+          <div class="settings-item">
+            <div class="settings-label">
+              <div class="settings-title">Activity Detection</div>
+              <div class="settings-description">Reset timer on mouse/keyboard activity</div>
+            </div>
+            <div class="toggle-switch active" id="activityToggle">
+              <div class="toggle-knob"></div>
+            </div>
+          </div>
+          <div class="settings-item">
+            <div class="settings-label">
+              <div class="settings-title">Persistent Notifications</div>
+              <div class="settings-description">Keep notifications visible until dismissed</div>
+            </div>
+            <div class="toggle-switch" id="persistentToggle">
+              <div class="toggle-knob"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reset Settings -->
+        <button id="resetSettings" class="w-full mt-4 px-4 py-3 bg-red-500 text-white rounded-xl font-medium hover:bg-red-600 transition-colors">
+          🔄 Reset All Settings
+        </button>
+      </div>
+
+      <!-- Permission status -->
+      <div id="permissionAlert" class="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800 text-center hidden">
+        <span class="font-semibold">⚠️ Notification Permission Required</span>
+        <div class="text-xs mt-1">Click to enable notifications for the full useless experience!</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // App state
+    let countdown = 300;
+    let maxCountdown = 300;
+    let timer;
+    let enabled = true;
+    let notificationCount = 0;
+    let currentTheme = 'light';
+    let activeTab = 'home';
+    
+    // Settings state
+    let settings = {
+      masterEnabled: true,
+      timerInterval: 300,
+      soundEnabled: true,
+      countdownBeepsEnabled: true,
+      uiSoundEnabled: true,
+      vibrationEnabled: true,
+      vibrationPattern: false,
+      activityDetection: true,
+      persistentNotifications: false,
+      volume: 0.9,
+      selectedSound: 'bell'
+    };
+    
+    // Platform detection
+    let platform = {
+      isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),
+      hasVibration: 'vibrate' in navigator,
+      hasNotifications: 'Notification' in window,
+      hasAudio: 'AudioContext' in window || 'webkitAudioContext' in window
+    };
+    
+    // DOM elements
+    const timeLabel = document.getElementById('timeLabel');
+    const statusText = document.getElementById('statusText');
+    const progressArc = document.getElementById('progressArc');
+    const masterToggle = document.getElementById('masterToggle');
+    const log = document.getElementById('log');
+    const activityStatus = document.getElementById('activityStatus');
+    const soundIndicator = document.getElementById('soundIndicator');
+    const permissionAlert = document.getElementById('permissionAlert');
+    const notificationCountEl = document.getElementById('notificationCount');
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    const bgStop1 = document.getElementById('bgStop1');
+    const bgStop2 = document.getElementById('bgStop2');
+    const mainCard = document.getElementById('mainCard');
+    
+    // Settings elements
+    const platformBadge = document.getElementById('platformBadge');
+    const capabilitiesBadge = document.getElementById('capabilitiesBadge');
+    const vibrationSection = document.getElementById('vibrationSection');
+    const soundToggle = document.getElementById('soundToggle');
+    const countdownBeepsToggle = document.getElementById('countdownBeepsToggle');
+    const uiSoundToggle = document.getElementById('uiSoundToggle');
+    const volumeSlider = document.getElementById('volumeSlider');
+    const vibrationToggle = document.getElementById('vibrationToggle');
+    const vibrationPatternToggle = document.getElementById('vibrationPatternToggle');
+    const activityToggle = document.getElementById('activityToggle');
+    const persistentToggle = document.getElementById('persistentToggle');
+    const resetSettings = document.getElementById('resetSettings');
+
+    // Audio context and sounds
+    let audioContext;
+    let sounds = {};
+
+    // Sound definitions with Web Audio API
+    const soundDefinitions = {
+      bell: { type: 'bell', frequencies: [800, 600], duration: 0.8 },
+      chime: { type: 'chime', frequencies: [523, 659, 784], duration: 1.2 },
+      beep: { type: 'beep', frequencies: [1000], duration: 0.3 },
+      ding: { type: 'ding', frequencies: [1200, 800], duration: 0.6 },
+      pop: { type: 'pop', frequencies: [400, 800], duration: 0.2 },
+      whistle: { type: 'whistle', frequencies: [2000, 1500], duration: 0.5 },
+      countdownBeep: { type: 'countdownBeep', frequencies: [1500], duration: 0.15 }
+    };
+
+    // Initialize platform detection
+    function initPlatformDetection() {
+      if (platform.isMobile) {
+        platformBadge.textContent = 'Mobile';
+        platformBadge.className = 'platform-badge platform-mobile';
+      }
+      
+      if (platform.hasVibration) {
+        capabilitiesBadge.style.display = 'inline-flex';
+        vibrationSection.style.display = 'block';
+      }
+      
+      console.log('Platform detected:', platform);
+    }
+
+    // Initialize audio system
+    function initAudio() {
+      if (platform.hasAudio) {
+        try {
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          
+          // Create all notification sounds
+          Object.keys(soundDefinitions).forEach(soundName => {
+            sounds[soundName] = createNotificationSound(soundDefinitions[soundName]);
+          });
+          
+          // Create UI click sound
+          sounds.click = createNotificationSound({ 
+            type: 'click', 
+            frequencies: [400], 
+            duration: 0.05 
+          });
+          
+          console.log('Audio system initialized with sounds:', Object.keys(sounds));
+        } catch (error) {
+          console.warn('Audio initialization failed:', error);
+          platform.hasAudio = false;
+        }
+      }
+    }
+
+    function createNotificationSound(config) {
+      return function() {
+        if (!audioContext) return;
+        
+        try {
+          // Resume audio context if suspended (required by some browsers)
+          if (audioContext.state === 'suspended') {
+            audioContext.resume();
+          }
+          
+          const { frequencies, duration, type } = config;
+          const volume = settings.volume;
+          
+          if (type === 'bell') {
+            createBellSound(frequencies, duration, volume);
+          } else if (type === 'chime') {
+            createChimeSound(frequencies, duration, volume);
+          } else if (type === 'beep') {
+            createBeepSound(frequencies[0], duration, volume);
+          } else if (type === 'ding') {
+            createDingSound(frequencies, duration, volume);
+          } else if (type === 'pop') {
+            createPopSound(frequencies, duration, volume);
+          } else if (type === 'whistle') {
+            createWhistleSound(frequencies, duration, volume);
+          } else if (type === 'countdownBeep') {
+            createCountdownBeepSound(frequencies[0], duration, volume);
+          } else if (type === 'click') {
+            createClickSound(frequencies[0], duration, volume);
+          }
+        } catch (error) {
+          console.warn('Sound playback failed:', error);
+        }
+      };
+    }
+
+    function createBellSound(frequencies, duration, volume) {
+      frequencies.forEach((freq, index) => {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.value = freq;
+        oscillator.type = 'sine';
+        
+        const startTime = audioContext.currentTime + (index * 0.1);
+        gainNode.gain.setValueAtTime(0, startTime);
+        gainNode.gain.linearRampToValueAtTime(volume * 0.8, startTime + 0.1);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+        
+        oscillator.start(startTime);
+        oscillator.stop(startTime + duration);
+      });
+    }
+
+    function createChimeSound(frequencies, duration, volume) {
+      frequencies.forEach((freq, index) => {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.value = freq;
+        oscillator.type = 'triangle';
+        
+        const startTime = audioContext.currentTime + (index * 0.2);
+        gainNode.gain.setValueAtTime(0, startTime);
+        gainNode.gain.linearRampToValueAtTime(volume * 0.7, startTime + 0.1);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + 0.8);
+        
+        oscillator.start(startTime);
+        oscillator.stop(startTime + 0.8);
+      });
+    }
+
+    function createBeepSound(frequency, duration, volume) {
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.value = frequency;
+      oscillator.type = 'square';
+      
+      gainNode.gain.setValueAtTime(volume * 0.9, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + duration);
+    }
+
+    function createDingSound(frequencies, duration, volume) {
+      frequencies.forEach((freq, index) => {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.value = freq;
+        oscillator.type = 'sine';
+        
+        const startTime = audioContext.currentTime + (index * 0.05);
+        gainNode.gain.setValueAtTime(volume * 0.8, startTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+        
+        oscillator.start(startTime);
+        oscillator.stop(startTime + duration);
+      });
+    }
+
+    function createPopSound(frequencies, duration, volume) {
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.setValueAtTime(frequencies[0], audioContext.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(frequencies[1], audioContext.currentTime + duration);
+      oscillator.type = 'sine';
+      
+      gainNode.gain.setValueAtTime(volume * 0.9, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + duration);
+    }
+
+    function createWhistleSound(frequencies, duration, volume) {
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.setValueAtTime(frequencies[0], audioContext.currentTime);
+      oscillator.frequency.linearRampToValueAtTime(frequencies[1], audioContext.currentTime + duration);
+      oscillator.type = 'sine';
+      
+      gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+      gainNode.gain.linearRampToValueAtTime(volume * 0.8, audioContext.currentTime + 0.1);
+      gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + duration);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + duration);
+    }
+
+    function createCountdownBeepSound(frequency, duration, volume) {
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.value = frequency;
+      oscillator.type = 'square';
+      
+      // Sharp attack and quick decay for dramatic effect
+      gainNode.gain.setValueAtTime(volume * 1.0, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + duration);
+    }
+
+    function createClickSound(frequency, duration, volume) {
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.value = frequency;
+      oscillator.type = 'square';
+      
+      gainNode.gain.setValueAtTime(volume * 0.1, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + duration);
+    }
+
+    function playCountdownBeep() {
+      if (settings.countdownBeepsEnabled && sounds.countdownBeep) {
+        sounds.countdownBeep();
+        
+        // Show sound indicator briefly
+        soundIndicator.style.display = 'inline-flex';
+        setTimeout(() => {
+          soundIndicator.style.display = 'none';
+        }, 200);
+      }
+    }
+
+    function playNotificationSound() {
+      if (settings.soundEnabled && sounds[settings.selectedSound]) {
+        sounds[settings.selectedSound]();
+        
+        // Show sound indicator
+        soundIndicator.style.display = 'inline-flex';
+        setTimeout(() => {
+          soundIndicator.style.display = 'none';
+        }, 1000);
+      }
+    }
+
+    function playUISound() {
+      if (settings.uiSoundEnabled && sounds.click) {
+        sounds.click();
+      }
+    }
+
+    function previewSound(soundName) {
+      if (sounds[soundName]) {
+        sounds[soundName]();
+      }
+    }
+
+    // Vibration functions
+    function vibrate(pattern = [200]) {
+      if (platform.hasVibration && settings.vibrationEnabled) {
+        if (settings.vibrationPattern) {
+          navigator.vibrate([100, 50, 100, 50, 200]);
+        } else {
+          navigator.vibrate(pattern);
+        }
+      }
+    }
+
+    // Tab navigation
+    function initTabs() {
+      const tabs = document.querySelectorAll('.nav-tab');
+      const tabContents = document.querySelectorAll('.tab-content');
+      
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          playUISound();
+          
+          const targetTab = tab.dataset.tab;
+          
+          // Update active tab
+          tabs.forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          
+          // Update active content
+          tabContents.forEach(content => {
+            content.classList.remove('active');
+            if (content.id === targetTab + 'Tab') {
+              content.classList.add('active');
+            }
+          });
+          
+          activeTab = targetTab;
+        });
+      });
+    }
+
+    // Timer configuration
+    function initTimerConfig() {
+      const timerOptions = document.querySelectorAll('.timer-option');
+      
+      timerOptions.forEach(option => {
+        option.addEventListener('click', () => {
+          playUISound();
+          
+          // Update selection
+          timerOptions.forEach(opt => opt.classList.remove('selected'));
+          option.classList.add('selected');
+          
+          // Update timer interval
+          const seconds = parseInt(option.dataset.seconds);
+          settings.timerInterval = seconds;
+          maxCountdown = seconds;
+          
+          // Reset current countdown
+          resetTimer();
+          
+          // Save settings
+          saveSettings();
+        });
+      });
+    }
+
+    // Sound selection
+    function initSoundSelection() {
+      const soundOptions = document.querySelectorAll('.sound-option');
+      const previewButtons = document.querySelectorAll('.play-btn');
+      
+      soundOptions.forEach(option => {
+        option.addEventListener('click', (e) => {
+          if (e.target.classList.contains('play-btn')) return; // Don't select when clicking preview
+          
+          playUISound();
+          
+          // Update selection
+          soundOptions.forEach(opt => opt.classList.remove('selected'));
+          option.classList.add('selected');
+          
+          // Update selected sound
+          settings.selectedSound = option.dataset.sound;
+          saveSettings();
+        });
+      });
+      
+      previewButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const soundName = button.dataset.preview;
+          previewSound(soundName);
+        });
+      });
+    }
+
+    // Volume control
+    function initVolumeControl() {
+      volumeSlider.addEventListener('input', (e) => {
+        settings.volume = e.target.value / 100;
+        saveSettings();
+      });
+      
+      volumeSlider.addEventListener('change', () => {
+        // Play a preview sound when volume changes
+        previewSound(settings.selectedSound);
+      });
+    }
+
+    // Settings toggles
+    function initSettingsToggles() {
+      const toggles = [
+        { element: soundToggle, setting: 'soundEnabled' },
+        { element: countdownBeepsToggle, setting: 'countdownBeepsEnabled' },
+        { element: uiSoundToggle, setting: 'uiSoundEnabled' },
+        { element: vibrationToggle, setting: 'vibrationEnabled' },
+        { element: vibrationPatternToggle, setting: 'vibrationPattern' },
+        { element: activityToggle, setting: 'activityDetection' },
+        { element: persistentToggle, setting: 'persistentNotifications' }
+      ];
+      
+      toggles.forEach(({ element, setting }) => {
+        if (element) {
+          element.addEventListener('click', () => {
+            playUISound();
+            
+            settings[setting] = !settings[setting];
+            updateToggleState(element, settings[setting]);
+            saveSettings();
+          });
+        }
+      });
+    }
+
+    function updateToggleState(toggle, active) {
+      if (active) {
+        toggle.classList.add('active');
+        toggle.classList.remove('inactive');
+      } else {
+        toggle.classList.remove('active');
+        toggle.classList.add('inactive');
+      }
+    }
+
+    // Settings persistence
+    function saveSettings() {
+      localStorage.setItem('reverseNotificationSettings', JSON.stringify(settings));
+    }
+
+    function loadSettings() {
+      const saved = localStorage.getItem('reverseNotificationSettings');
+      if (saved) {
+        settings = { ...settings, ...JSON.parse(saved) };
+      }
+      
+      // Apply loaded settings to UI
+      updateToggleState(soundToggle, settings.soundEnabled);
+      updateToggleState(countdownBeepsToggle, settings.countdownBeepsEnabled);
+      updateToggleState(uiSoundToggle, settings.uiSoundEnabled);
+      updateToggleState(vibrationToggle, settings.vibrationEnabled);
+      updateToggleState(vibrationPatternToggle, settings.vibrationPattern);
+      updateToggleState(activityToggle, settings.activityDetection);
+      updateToggleState(persistentToggle, settings.persistentNotifications);
+      updateToggleState(masterToggle, settings.masterEnabled);
+      
+      // Update volume slider
+      volumeSlider.value = settings.volume * 100;
+      
+      // Update timer selection
+      const timerOptions = document.querySelectorAll('.timer-option');
+      timerOptions.forEach(option => {
+        option.classList.remove('selected');
+        if (parseInt(option.dataset.seconds) === settings.timerInterval) {
+          option.classList.add('selected');
+        }
+      });
+      
+      // Update sound selection
+      const soundOptions = document.querySelectorAll('.sound-option');
+      soundOptions.forEach(option => {
+        option.classList.remove('selected');
+        if (option.dataset.sound === settings.selectedSound) {
+          option.classList.add('selected');
+        }
+      });
+      
+      maxCountdown = settings.timerInterval;
+      enabled = settings.masterEnabled;
+    }
+
+    // Reset settings
+    resetSettings.addEventListener('click', () => {
+      playUISound();
+      
+      if (confirm('Are you sure you want to reset all settings to default?')) {
+        settings = {
+          masterEnabled: true,
+          timerInterval: 300,
+          soundEnabled: true,
+          countdownBeepsEnabled: true,
+          uiSoundEnabled: true,
+          vibrationEnabled: true,
+          vibrationPattern: false,
+          activityDetection: true,
+          persistentNotifications: false,
+          volume: 0.9,
+          selectedSound: 'bell'
+        };
+        
+        localStorage.removeItem('reverseNotificationSettings');
+        loadSettings();
+        resetTimer();
+      }
+    });
+
+    // Theme management
+    function initTheme() {
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      currentTheme = savedTheme;
+      applyTheme(savedTheme);
+    }
+
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      
+      // Update theme icon with animation
+      themeToggle.classList.add('theme-switch-animation');
+      setTimeout(() => {
+        themeIcon.textContent = theme === 'dark' ? '🌙' : '☀️';
+        themeToggle.classList.remove('theme-switch-animation');
+      }, 300);
+      
+      // Update SVG gradient colors for dark mode
+      if (theme === 'dark') {
+        bgStop1.style.stopColor = '#374151';
+        bgStop2.style.stopColor = '#4b5563';
+      } else {
+        bgStop1.style.stopColor = '#f1f5f9';
+        bgStop2.style.stopColor = '#e2e8f0';
+      }
+      
+      // Update status bar color for mobile
+      updateStatusBarColor(theme);
+    }
+
+    function updateStatusBarColor(theme) {
+      // Remove existing meta tags
+      const existingMeta = document.querySelector('meta[name="theme-color"]');
+      if (existingMeta) {
+        existingMeta.remove();
+      }
+      
+      // Add new meta tag with appropriate color
+      const meta = document.createElement('meta');
+      meta.name = 'theme-color';
+      meta.content = theme === 'dark' ? '#1e1b4b' : '#667eea';
+      document.head.appendChild(meta);
+    }
+
+    function toggleTheme() {
+      playUISound();
+      currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+      applyTheme(currentTheme);
+      localStorage.setItem('theme', currentTheme);
+      
+      // Add a subtle shake to the card for feedback
+      document.querySelector('.glass-card').style.transform = 'scale(1.02)';
+      setTimeout(() => {
+        document.querySelector('.glass-card').style.transform = 'scale(1)';
+      }, 150);
+    }
+
+    themeToggle.addEventListener('click', toggleTheme);
+
+    // Request browser notification permission
+    async function requestPermission() {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        permissionAlert.classList.remove('hidden');
+        permissionAlert.addEventListener('click', requestPermission);
+      } else {
+        permissionAlert.classList.add('hidden');
+      }
+      return permission;
+    }
+
+    function updateTimerDisplay() {
+      const mins = String(Math.floor(countdown / 60)).padStart(2, '0');
+      const secs = String(countdown % 60).padStart(2, '0');
+      timeLabel.textContent = `${mins}:${secs}`;
+      
+      const percent = ((maxCountdown - countdown) / maxCountdown) * 100;
+      progressArc.setAttribute("stroke-dasharray", `${percent}, 100`);
+      
+      // BOMB TIMER COUNTDOWN EFFECTS
+      if (countdown <= 10 && countdown > 0) {
+        // Add bomb timer styling
+        timeLabel.classList.add('bomb-timer');
+        mainCard.classList.add('critical-flash');
+        progressArc.classList.add('urgent');
+        
+        // Play countdown beep
+        playCountdownBeep();
+        
+        // Vibrate on each second in final 10
+        if (platform.hasVibration && settings.vibrationEnabled) {
+          navigator.vibrate(50);
+        }
+        
+        statusText.textContent = `💣 COUNTDOWN: ${countdown}`;
+        statusText.className = 'text-xs text-red-500 mt-1 font-bold bomb-timer';
+        updateActivityStatus(`💣 BOMB TIMER: ${countdown} SECONDS!`, 'status-indicator bg-red-100 text-red-800');
+      } else if (countdown <= 30) {
+        progressArc.classList.add('urgent');
+        timeLabel.classList.add('glow-text');
+        statusText.textContent = 'INCOMING PITY PING!';
+        statusText.className = 'text-xs text-red-500 mt-1 font-bold';
+        updateActivityStatus('🔴 Preparing your loneliness alert!', 'status-indicator bg-red-100 text-red-800');
+      } else if (countdown <= 60) {
+        timeLabel.classList.add('glow-text');
+        statusText.textContent = 'almost there...';
+        statusText.className = 'text-xs text-orange-500 mt-1 font-semibold';
+        updateActivityStatus('🟡 Getting ready to interrupt!', 'status-indicator bg-yellow-100 text-yellow-800');
+      } else {
+        // Remove bomb timer effects
+        timeLabel.classList.remove('bomb-timer');
+        mainCard.classList.remove('critical-flash');
+        progressArc.classList.remove('urgent');
+        timeLabel.classList.remove('glow-text');
+        statusText.textContent = 'until notification';
+        statusText.className = 'text-xs mt-1 font-medium';
+        statusText.style.color = 'var(--text-muted)';
+        updateActivityStatus('🟢 Monitoring your solitude...', 'status-indicator');
+      }
+    }
+
+    function updateActivityStatus(text, className) {
+      activityStatus.textContent = text;
+      activityStatus.className = `inline-flex items-center px-4 py-2 rounded-full text-sm font-medium ${className}`;
+      activityStatus.innerHTML = `<div class="w-2 h-2 bg-current rounded-full mr-2 animate-pulse"></div>${text}`;
+    }
+
+    function sendReverseNotification() {
+      if (Notification.permission === 'granted' && enabled && settings.masterEnabled) {
+        const messages = [
+          "You're being ignored 😅 - So here's your pity ping!",
+          "Breaking: Nobody cares right now 📱 - But we do!",
+          "Loneliness detected 🥺 - Consider this your digital hug!",
+          "5 minutes of peace? Not on our watch! 😈",
+          "Your phone was getting lonely 💔 - Here's some love!",
+          "Silence is golden, but this notification is platinum! ✨",
+          "Your digital loneliness has been detected and interrupted! 🤖",
+          "Congratulations! You've achieved peak solitude. Here's your reward! 🏆",
+          "TIMER EXPIRED! Your loneliness quota has been reached! 🚨",
+          "💣 BOMB TIMER DETONATED! Maximum loneliness achieved! 💥"
+        ];
+        
+        const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+        
+        const notification = new Notification("💥 BOMB TIMER EXPIRED! 💥", {
+          body: randomMessage,
+          icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">💣</text></svg>',
+          badge: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">💥</text></svg>',
+          requireInteraction: settings.persistentNotifications,
+          tag: 'reverse-notification'
+        });
+        
+        // ENHANCED TIMER EXPIRY SOUND - Play notification sound with emphasis
+        if (settings.soundEnabled) {
+          // Play the selected notification sound
+          playNotificationSound();
+          
+          // Add a second sound burst after a short delay for emphasis
+          setTimeout(() => {
+            if (settings.soundEnabled && sounds[settings.selectedSound]) {
+              sounds[settings.selectedSound]();
+            }
+          }, 300);
+          
+          // Show extended sound indicator
+          soundIndicator.style.display = 'inline-flex';
+          setTimeout(() => {
+            soundIndicator.style.display = 'none';
+          }, 2000);
+        }
+        
+        // Enhanced vibration for timer expiry
+        if (platform.hasVibration && settings.vibrationEnabled) {
+          // Triple vibration pattern for bomb timer expiry
+          navigator.vibrate([300, 100, 300, 100, 500]);
+        }
+        
+        notificationCount++;
+        notificationCountEl.textContent = notificationCount;
+        log.textContent = new Date().toLocaleTimeString();
+        
+        // Enhanced visual feedback for bomb timer expiry
+        document.querySelector('.glass-card').classList.add('shake-animation');
+        
+        // Flash the progress circle red
+        progressArc.style.stroke = '#ef4444';
+        setTimeout(() => {
+          progressArc.style.stroke = '';
+          document.querySelector('.glass-card').classList.remove('shake-animation');
+        }, 1000);
+        
+        // Remove bomb timer effects after explosion
+        timeLabel.classList.remove('bomb-timer');
+        mainCard.classList.remove('critical-flash');
+        
+        // Update status with bomb timer expiry message
+        updateActivityStatus('💥 BOMB TIMER DETONATED! Loneliness obliterated!', 'status-indicator bg-red-100 text-red-800');
+        setTimeout(() => {
+          updateActivityStatus('🟢 Monitoring your solitude...', 'status-indicator');
+        }, 3000);
+      }
+    }
+
+    function resetTimer() {
+      countdown = maxCountdown;
+      
+      // Remove any bomb timer effects when resetting
+      timeLabel.classList.remove('bomb-timer');
+      mainCard.classList.remove('critical-flash');
+      progressArc.classList.remove('urgent');
+      
+      updateTimerDisplay();
+    }
+
+    function toggleMasterControl() {
+      playUISound();
+      
+      enabled = !enabled;
+      settings.masterEnabled = enabled;
+      
+      updateToggleState(masterToggle, enabled);
+      
+      if (enabled) {
+        updateActivityStatus('🟢 Monitoring your solitude...', 'status-indicator');
+      } else {
+        updateActivityStatus('⏸️ Paused - Your loneliness is safe', 'status-indicator bg-gray-100 text-gray-800');
+      }
+      
+      saveSettings();
+    }
+
+    // Event listeners
+    masterToggle.addEventListener('click', toggleMasterControl);
+
+    // Reset timer on user activity with throttling
+    let lastActivity = 0;
+    const throttleDelay = 1000; // 1 second throttle
+
+    function handleActivity() {
+      if (!settings.activityDetection) return;
+      
+      const now = Date.now();
+      if (now - lastActivity > throttleDelay) {
+        resetTimer();
+        lastActivity = now;
+        
+        // Visual feedback for activity
+        activityStatus.style.transform = 'scale(1.05)';
+        setTimeout(() => {
+          activityStatus.style.transform = 'scale(1)';
+        }, 150);
+      }
+    }
+
+    ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'].forEach(event =>
+      document.addEventListener(event, handleActivity)
+    );
+
+    function startCountdown() {
+      timer = setInterval(() => {
+        if (!enabled || !settings.masterEnabled) return;
+        
+        countdown--;
+        updateTimerDisplay();
+        
+        if (countdown <= 0) {
+          // BOMB TIMER EXPIRED - Enhanced notification
+          console.log('💥 BOMB TIMER DETONATED! Sending reverse notification...');
+          sendReverseNotification();
+          resetTimer();
+        }
+      }, 1000);
+    }
+
+    // Initialize everything
+    function init() {
+      initPlatformDetection();
+      initAudio();
+      initTheme();
+      initTabs();
+      initTimerConfig();
+      initSoundSelection();
+      initVolumeControl();
+      initSettingsToggles();
+      loadSettings();
+      requestPermission();
+      resetTimer();
+      startCountdown();
+    }
+
+    // Start the app when page loads
+    document.addEventListener('DOMContentLoaded', init);
+    
+    // Also start immediately if DOM is already loaded
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  </script>
+</body>
+</html>
